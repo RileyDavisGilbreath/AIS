@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>National Walkability Index</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>National Walkability Index</h1>
+    <p>EPA National Walkability Index – Nationwide</p>
+  </header>
+
+  <main>
+    <section class="stats-cards">
+      <div class="card" id="state-avg">
+        <span class="label">State Avg Score</span>
+        <span class="value">--</span>
+      </div>
+      <div class="card" id="block-groups">
+        <span class="label" title="Small local areas used by the U.S. Census (Census block groups)">Neighborhood Areas</span>
+        <span class="value">--</span>
+      </div>
+    </section>
+
+    <section class="charts-section">
+      <div class="chart-container distribution-chart">
+        <h2>Walkability Score Distribution</h2>
+        <p class="chart-subtitle">How many neighborhood areas fall into each walkability score range</p>
+        <canvas id="distribution-chart"></canvas>
+      </div>
+      <div class="chart-container states-chart">
+        <h2>States by Walkability</h2>
+        <canvas id="states-chart"></canvas>
+      </div>
+      <div class="chart-container scrollable-chart">
+        <h2>State Walkability Forecast (Estimate)</h2>
+        <canvas id="state-forecast-chart"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>

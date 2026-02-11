@@ -1,0 +1,144 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a2332;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --green: #3fb950;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+header {
+  background: var(--surface);
+  padding: 2rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+header p {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.card {
+  background: var(--surface);
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.card .label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.card .value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.chart-container {
+  background: var(--surface);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+
+.chart-container h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--muted);
+}
+
+.chart-container .chart-subtitle {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.chart-container canvas {
+  max-height: 250px;
+}
+
+.chart-container.distribution-chart canvas {
+  max-height: 360px;
+  height: 360px;
+}
+
+.chart-container.states-chart canvas {
+  max-height: 360px;
+  height: 360px;
+}
+
+/* Forecast chart: full-width, fixed size so it doesn't grow */
+.chart-container.scrollable-chart {
+  grid-column: 1 / -1;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  height: 320px;
+}
+
+.chart-container.scrollable-chart canvas#state-forecast-chart {
+  height: 280px !important;
+  max-height: 280px;
+}
+
+.chart-note {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+.loading, .error {
+  color: var(--muted);
+  padding: 1rem;
+}
+
+.error {
+  color: #f85149;
+}

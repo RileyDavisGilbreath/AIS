@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "AlabamaWalkabilityApi": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "api/stats/state",
+      "applicationUrl": "http://localhost:5000"
+    }
+  }
+}
