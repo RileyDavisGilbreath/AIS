@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AlabamaWalkabilityApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6151ecb60eb3400c88502f7ae468e328218e7e17")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+45c8cf05d0ba517598396dc645854052ee1cdb74")]
 [assembly: System.Reflection.AssemblyProductAttribute("AlabamaWalkabilityApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AlabamaWalkabilityApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

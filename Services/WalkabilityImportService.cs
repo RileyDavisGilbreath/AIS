@@ -131,7 +131,7 @@ namespace AlabamaWalkabilityApi.Services;
             var geoid = cols[geoidIdx].Trim('"', ' ');
             if (string.IsNullOrEmpty(geoid)) continue;
 
-            var fips = geoid.Length >= 12 ? geoid.Substring(0, 12) : geoid.PadLeft(12, '0');
+            var fips = NormalizeGeoid(geoid);
             var stateFips = fips.Length >= 2 ? fips.Substring(0, 2) : "00";
             var countyFips = fips.Length >= 5 ? fips.Substring(2, 3) : "000";
             var tractFips = fips.Length >= 11 ? fips.Substring(0, 11) : fips.PadRight(11, '0');
@@ -255,8 +255,7 @@ namespace AlabamaWalkabilityApi.Services;
             var geoid = cols[geoidIdx].Trim('"', ' ');
             if (string.IsNullOrEmpty(geoid)) continue;
 
-            // For national import, keep all states; derive state_fips from GEOID
-            var fips = geoid.Length >= 12 ? geoid.Substring(0, 12) : geoid.PadLeft(12, '0');
+            var fips = NormalizeGeoid(geoid);
             var stateFips = fips.Length >= 2 ? fips.Substring(0, 2) : "00";
             var countyFips = fips.Length >= 5 ? fips.Substring(2, 3) : "000";
             var tractFips = fips.Length >= 11 ? fips.Substring(0, 11) : fips.PadRight(11, '0');
@@ -318,6 +317,18 @@ namespace AlabamaWalkabilityApi.Services;
         }
 
         return (blockGroupCount, countyCount);
+    }
+
+    /// <summary>Parse GEOID (handles scientific notation like 4.8113E+11 from EPA CSV).</summary>
+    private static string NormalizeGeoid(string geoid)
+    {
+        geoid = geoid.Trim('"', ' ');
+        if (double.TryParse(geoid, NumberStyles.Float, CultureInfo.InvariantCulture, out var num))
+        {
+            var s = ((long)num).ToString(CultureInfo.InvariantCulture);
+            return s.Length >= 12 ? s.Substring(0, 12) : s.PadLeft(12, '0');
+        }
+        return geoid.Length >= 12 ? geoid.Substring(0, 12) : geoid.PadLeft(12, '0');
     }
 
     private static int IndexOfHeader(string[] headers, params string[] names)

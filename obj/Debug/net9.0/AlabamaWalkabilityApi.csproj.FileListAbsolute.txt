@@ -44,6 +44,9 @@ C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\AlabamaWalkabil
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\AlabamaWalkabilityApi.genruntimeconfig.cache
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\ref\AlabamaWalkabilityApi.dll
 C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\AlabamaWalkabilityApi.staticwebassets.runtime.json
-C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\slv3956a8r-qxnfao5fw0.gz
-C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\ihqwpnuq47-7dz3hrawl4.gz
-C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\2zs5itf99g-5i8jjlc26b.gz
+C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\appsettings.Development.json
+C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\AlabamaWalkabilityApi.sourcelink.json
+C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\slv3956a8r-ub6f1itcoe.gz
+C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\y8t8an3d8k-9bsjnb25lw.gz
+C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\ihqwpnuq47-7dn60rfbsj.gz
+C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\2zs5itf99g-8wc4ucmag6.gz

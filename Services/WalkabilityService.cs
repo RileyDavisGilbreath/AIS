@@ -6,6 +6,20 @@ namespace AlabamaWalkabilityApi.Services;
 public class WalkabilityService : IWalkabilityService
 {
     // Canonical list of US state FIPS codes (including DC), used for national views
+    private static readonly Dictionary<string, string> StateFipsToAbbrev = new()
+    {
+        ["01"] = "AL", ["02"] = "AK", ["04"] = "AZ", ["05"] = "AR", ["06"] = "CA",
+        ["08"] = "CO", ["09"] = "CT", ["10"] = "DE", ["11"] = "DC", ["12"] = "FL",
+        ["13"] = "GA", ["15"] = "HI", ["16"] = "ID", ["17"] = "IL", ["18"] = "IN",
+        ["19"] = "IA", ["20"] = "KS", ["21"] = "KY", ["22"] = "LA", ["23"] = "ME",
+        ["24"] = "MD", ["25"] = "MA", ["26"] = "MI", ["27"] = "MN", ["28"] = "MS",
+        ["29"] = "MO", ["30"] = "MT", ["31"] = "NE", ["32"] = "NV", ["33"] = "NH",
+        ["34"] = "NJ", ["35"] = "NM", ["36"] = "NY", ["37"] = "NC", ["38"] = "ND",
+        ["39"] = "OH", ["40"] = "OK", ["41"] = "OR", ["42"] = "PA", ["44"] = "RI",
+        ["45"] = "SC", ["46"] = "SD", ["47"] = "TN", ["48"] = "TX", ["49"] = "UT",
+        ["50"] = "VT", ["51"] = "VA", ["53"] = "WA", ["54"] = "WV", ["55"] = "WI", ["56"] = "WY"
+    };
+
     private static readonly string[] AllStateFips =
     [
         "01", // AL
@@ -199,10 +213,16 @@ public class WalkabilityService : IWalkabilityService
     {
         await using var conn = _db.CreateConnection();
         await conn.OpenAsync(ct);
-        // National stats: aggregate across all states
-        var cmd = new MySqlCommand("""
+        
+        // Build WHERE clause to exclude territories (only include 50 states + DC)
+        var stateFipsList = string.Join(",", AllStateFips.Select(f => $"'{f}'"));
+        var whereClause = $"WHERE state_fips IN ({stateFipsList})";
+        
+        // National stats: aggregate across all states (excluding territories)
+        var cmd = new MySqlCommand($"""
             SELECT AVG(walkability_score) avg_s, COUNT(*) cnt, SUM(population) pop
             FROM block_groups
+            {whereClause}
             """, conn);
         
         double avg = 0;
@@ -221,10 +241,11 @@ public class WalkabilityService : IWalkabilityService
 
         if (cnt == 0) return new StateStatsDto(0, 0, 0, 0, []);
 
-        // Distribution query - national distribution; SELECT only grouped expression for ONLY_FULL_GROUP_BY
-        var distCmd = new MySqlCommand("""
+        // Distribution query - national distribution (excluding territories)
+        var distCmd = new MySqlCommand($"""
             SELECT FLOOR(walkability_score/5) AS bucket_key, COUNT(*) c
             FROM block_groups
+            {whereClause}
             GROUP BY FLOOR(walkability_score/5)
             ORDER BY bucket_key
             """, conn);
@@ -239,9 +260,9 @@ public class WalkabilityService : IWalkabilityService
             }
         }
 
-        // Median query - national median across all states
-        var medCmd = new MySqlCommand("""
-            SELECT walkability_score FROM block_groups ORDER BY walkability_score LIMIT 1 OFFSET @off
+        // Median query - national median across all states (excluding territories)
+        var medCmd = new MySqlCommand($"""
+            SELECT walkability_score FROM block_groups {whereClause} ORDER BY walkability_score LIMIT 1 OFFSET @off
             """, conn);
         medCmd.Parameters.AddWithValue("@off", cnt / 2);
         var median = 0.0;
@@ -376,5 +397,35 @@ public class WalkabilityService : IWalkabilityService
         }
 
         return result;
+    }
+
+    public async Task<IEnumerable<StateRecommendationDto>> GetStateRecommendationsAsync(CancellationToken ct = default)
+    {
+        var forecast = await GetStateForecastAsync(1, ct);
+        var list = new List<StateRecommendationDto>();
+
+        foreach (var s in forecast.Where(x => x.BlockGroupCount > 0))
+        {
+            var score = s.CurrentAvgWalkability;
+            var abbrev = StateFipsToAbbrev.GetValueOrDefault(s.StateFips, s.StateFips);
+            var (priority, recommendation) = GetRecommendation(score);
+            list.Add(new StateRecommendationDto(s.StateFips, abbrev, score, priority, recommendation));
+        }
+
+        return list
+            .OrderBy(x => x.CurrentScore)
+            .Take(15)
+            .ToList();
+    }
+
+    private static (string Priority, string Recommendation) GetRecommendation(double score)
+    {
+        if (score < 5)
+            return ("High", "Prioritize transit expansion, mixed-use development, and pedestrian infrastructure.");
+        if (score < 10)
+            return ("Moderate", "Focus on intersection density, transit proximity, and land-use diversity.");
+        if (score < 15)
+            return ("Maintain", "Continue current policies; consider incremental improvements.");
+        return ("Exemplary", "Share best practices with other states.");
     }
 }

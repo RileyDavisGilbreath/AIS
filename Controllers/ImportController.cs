@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting;
 using AlabamaWalkabilityApi.Services;
 
 namespace AlabamaWalkabilityApi.Controllers;
@@ -10,13 +9,11 @@ public class ImportController : ControllerBase
 {
     private readonly IDataGovService _dataGov;
     private readonly IWalkabilityImportService _import;
-    private readonly IWebHostEnvironment _env;
 
-    public ImportController(IDataGovService dataGov, IWalkabilityImportService import, IWebHostEnvironment env)
+    public ImportController(IDataGovService dataGov, IWalkabilityImportService import)
     {
         _dataGov = dataGov;
         _import = import;
-        _env = env;
     }
 
     /// <summary>Seed the 67 Alabama counties with names (zero stats). Call once if /api/stats/counties is empty.</summary>
@@ -94,37 +91,6 @@ public class ImportController : ControllerBase
         catch (Exception ex)
         {
             return Ok(new { success = false, error = ex.Message });
-        }
-    }
-
-    /// <summary>Import CSV from a file in the project Scripts folder. Example: /api/import/csv/local?file=EPA_SmartLocationDatabase_V3_Jan_2021_Final (2).csv</summary>
-    [HttpGet("csv/local")]
-    public async Task<ActionResult> ImportCsvLocal([FromQuery] string file, CancellationToken ct = default)
-    {
-        if (string.IsNullOrEmpty(file))
-            return BadRequest("file query parameter required (e.g. file=your.csv)");
-
-        var fileName = Path.GetFileName(file);
-        if (string.IsNullOrEmpty(fileName) || fileName != file)
-            return BadRequest("file must be a simple filename, no path separators");
-
-        var scriptsDir = Path.Combine(_env.ContentRootPath, "Scripts");
-        var fullPath = Path.GetFullPath(Path.Combine(scriptsDir, fileName));
-        if (!fullPath.StartsWith(Path.GetFullPath(scriptsDir), StringComparison.OrdinalIgnoreCase))
-            return BadRequest("File must be in the Scripts folder");
-
-        if (!System.IO.File.Exists(fullPath))
-            return NotFound($"File not found: {fileName}");
-
-        try
-        {
-            await using var stream = System.IO.File.OpenRead(fullPath);
-            var (blockGroups, counties) = await _import.ImportFromStreamAsync(stream, ct);
-            return Ok(new { imported = new { blockGroups, counties }, message = $"Imported {blockGroups} block groups and updated {counties} counties" });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
         }
     }
 

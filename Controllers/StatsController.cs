@@ -59,9 +59,9 @@ public class StatsController : ControllerBase
             var result = await _svc.GetDistributionAsync(countyFips, ct);
             return Ok(result ?? Array.Empty<ScoreBucket>());
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new { error = ex.Message, stackTrace = ex.StackTrace });
+            return Ok(Array.Empty<ScoreBucket>());
         }
     }
 
@@ -75,8 +75,31 @@ public class StatsController : ControllerBase
         [FromQuery] int years = 10,
         CancellationToken ct = default)
     {
-        var result = await _svc.GetStateForecastAsync(years, ct);
-        return Ok(result);
+        try
+        {
+            var result = await _svc.GetStateForecastAsync(years, ct);
+            return Ok(result ?? Array.Empty<StateForecastDto>());
+        }
+        catch (Exception)
+        {
+            return Ok(Array.Empty<StateForecastDto>());
+        }
+    }
+
+    /// <summary>Prescriptive recommendations for states with lowest walkability (prioritize improvements).</summary>
+    [HttpGet("state-recommendations")]
+    [ProducesResponseType(typeof(IEnumerable<StateRecommendationDto>), 200)]
+    public async Task<ActionResult<IEnumerable<StateRecommendationDto>>> GetStateRecommendations(CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _svc.GetStateRecommendationsAsync(ct);
+            return Ok(result ?? Array.Empty<StateRecommendationDto>());
+        }
+        catch (Exception)
+        {
+            return Ok(Array.Empty<StateRecommendationDto>());
+        }
     }
 
     /// <summary>Test endpoint - check DB connection and row counts.</summary>

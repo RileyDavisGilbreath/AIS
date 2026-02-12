@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>National Walkability Index</title>
   <link rel="stylesheet" href="/css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header>
@@ -13,35 +12,39 @@
     <p>EPA National Walkability Index – Nationwide</p>
   </header>
 
-  <main>
-    <section class="stats-cards">
-      <div class="card" id="state-avg">
-        <span class="label">State Avg Score</span>
-        <span class="value">--</span>
-      </div>
-      <div class="card" id="block-groups">
-        <span class="label" title="Small local areas used by the U.S. Census (Census block groups)">Neighborhood Areas</span>
-        <span class="value">--</span>
-      </div>
-    </section>
-
-    <section class="charts-section">
-      <div class="chart-container distribution-chart">
-        <h2>Walkability Score Distribution</h2>
-        <p class="chart-subtitle">How many neighborhood areas fall into each walkability score range</p>
-        <canvas id="distribution-chart"></canvas>
-      </div>
-      <div class="chart-container states-chart">
-        <h2>States by Walkability</h2>
-        <canvas id="states-chart"></canvas>
-      </div>
-      <div class="chart-container scrollable-chart">
-        <h2>State Walkability Forecast (Estimate)</h2>
-        <canvas id="state-forecast-chart"></canvas>
-      </div>
-    </section>
-  </main>
-
-  <script src="/js/app.js"></script>
+  <div class="main-layout">
+    <main>
+      <section class="card home-intro">
+        <h2>What is this project?</h2>
+        <p>
+          This app visualizes the EPA's National Walkability Index for all U.S. states
+          using block‑group data from the Smart Location Database.
+        </p>
+        <p>
+          The index is built at the census block group level and combines
+          density, land-use mix, street connectivity, and transit access
+          into a single walkability score.
+        </p>
+        <p>
+          On the next page you can explore:
+        </p>
+        <ul>
+          <li>Nationwide distribution of neighborhood walkability scores</li>
+          <li>Average walkability scores by state</li>
+          <li>A simple heuristic forecast of future state walkability</li>
+          <li>Which states most need walkability improvements</li>
+        </ul>
+        <p style="margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:0.75rem;">
+          <a href="/dashboard.html" class="primary-button">View National Walkability Dashboard →</a>
+          <a href="https://www.epa.gov/smartgrowth/national-walkability-index" target="_blank" rel="noopener" class="secondary-button">
+            Open Walkability Index Dataset
+          </a>
+          <a href="https://www.epa.gov/smartgrowth/smart-location-mapping" target="_blank" rel="noopener" class="secondary-button">
+            Open Smart Location Database
+          </a>
+        </p>
+      </section>
+    </main>
+  </div>
 </body>
 </html>

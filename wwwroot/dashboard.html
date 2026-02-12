@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>National Walkability Index – Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>National Walkability Index</h1>
+    <p>EPA National Walkability Index – Nationwide Dashboard</p>
+    <p class="scale-note">Higher scores = more walkable. Scale: 1–5 (Low) · 5–10 (Moderate) · 10–15 (Good) · 15–20 (Very walkable)</p>
+    <p class="dashboard-header-actions">
+      <a href="/" class="secondary-button">← Back to overview</a>
+    </p>
+  </header>
+
+  <div class="main-layout">
+    <main>
+      <section class="stats-cards">
+        <div class="card" id="state-avg">
+          <span class="label">State Avg Score</span>
+          <span class="value">--</span>
+          <span class="rating" id="state-avg-rating"></span>
+        </div>
+        <div class="card" id="block-groups">
+          <span class="label" title="Small local areas used by the U.S. Census (Census block groups)">Neighborhood Areas</span>
+          <span class="value">--</span>
+        </div>
+      </section>
+
+      <section class="charts-section">
+        <div class="chart-container distribution-chart">
+          <h2>Walkability Score Distribution</h2>
+          <p class="chart-subtitle">How many neighborhood areas fall into each walkability score range</p>
+          <canvas id="distribution-chart"></canvas>
+        </div>
+        <div class="chart-container">
+          <h2>How to use this data</h2>
+          <p>
+            This dashboard is meant to help you quickly understand where walkability is strongest,
+            where it is weakest, and how that gap might evolve over time.
+          </p>
+          <h3 style="margin-top:0.75rem;font-size:0.9rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">
+            For policy & funding
+          </h3>
+          <ul>
+            <li><strong>Scan the distribution</strong> to see how many neighborhood areas sit in low vs. high walkability bands.</li>
+            <li><strong>Use “States by Walkability”</strong> to identify states that consistently underperform their peers.</li>
+            <li><strong>Start with the recommendations list</strong> when choosing where to target limited funds or pilot programs.</li>
+          </ul>
+          <h3 style="margin-top:0.75rem;font-size:0.9rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">
+            For planning & design
+          </h3>
+          <ul>
+            <li><strong>Compare current vs. forecast</strong> to understand whether gaps between states are expected to narrow or widen.</li>
+            <li><strong>Drill into the State Spotlight</strong> by clicking a bar to see how a single state’s score and outlook compare.</li>
+            <li><strong>Pair with local knowledge</strong> (corridor plans, zoning, transit projects) to translate low scores into specific projects.</li>
+          </ul>
+        </div>
+        <div class="chart-container states-chart">
+          <h2>States by Walkability</h2>
+          <canvas id="states-chart"></canvas>
+        </div>
+        <div class="chart-container scrollable-chart">
+          <h2>State Walkability Forecast (Estimate)</h2>
+          <canvas id="state-forecast-chart"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <aside class="sidebar">
+      <div class="data-source-card">
+        <h3>Data Source</h3>
+        <p>Data from the <a href="https://www.epa.gov/smartgrowth/national-walkability-index" target="_blank" rel="noopener">EPA National Walkability Index</a>, based on the <a href="https://www.epa.gov/smartgrowth/smart-location-mapping" target="_blank" rel="noopener">Smart Location Database</a>.</p>
+        <p><a href="https://www.epa.gov/smartgrowth/national-walkability-index-user-guide-and-methodology" target="_blank" rel="noopener">Methodology &amp; User Guide →</a></p>
+      </div>
+      <div class="recommendations-card" id="recommendations-card">
+        <h3>State Recommendations</h3>
+        <p class="recommendations-subtitle">States most in need of walkability improvements</p>
+        <ul id="recommendations-list"></ul>
+      </div>
+      <div class="recommendations-card state-detail-card" id="state-detail-card" style="display:none;">
+        <h3>State Spotlight</h3>
+        <p class="recommendations-subtitle">Click a bar in either chart to see details</p>
+        <div id="state-detail-empty" class="muted">No state selected yet.</div>
+        <div id="state-detail-body" style="display:none;"></div>
+      </div>
+    </aside>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
+

@@ -9,4 +9,5 @@ public interface IWalkabilityService
     Task<IEnumerable<CountyDto>> GetCountyStatsAsync(string? sort, bool withDataOnly = false, CancellationToken ct = default);
     Task<IEnumerable<ScoreBucket>> GetDistributionAsync(string? countyFips, CancellationToken ct = default);
     Task<IEnumerable<StateForecastDto>> GetStateForecastAsync(int years, CancellationToken ct = default);
+    Task<IEnumerable<StateRecommendationDto>> GetStateRecommendationsAsync(CancellationToken ct = default);
 }

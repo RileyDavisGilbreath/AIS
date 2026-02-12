@@ -4,8 +4,13 @@ using AlabamaWalkabilityApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Allow large CSV uploads (e.g. national EPA walkability ~500MB+)
-builder.WebHost.ConfigureKestrel(opts => opts.Limits.MaxRequestBodySize = 524_288_000); // 500 MB
+// Allow large CSV uploads and long-running import (e.g. national EPA ~500MB, 20+ min)
+builder.WebHost.ConfigureKestrel(opts =>
+{
+    opts.Limits.MaxRequestBodySize = 524_288_000; // 500 MB
+    opts.Limits.KeepAliveTimeout = TimeSpan.FromHours(2);
+    opts.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(5);
+});
 
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
