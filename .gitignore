@@ -6,7 +6,7 @@ appsettings.Local.json
 
 # Large data files
 Scripts/*.csv
-
+/*.csv
 
 # Build outputs
 bin/
