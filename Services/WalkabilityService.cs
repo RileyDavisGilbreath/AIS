@@ -339,7 +339,7 @@ public class WalkabilityService : IWalkabilityService
         await using var conn = _db.CreateConnection();
         await conn.OpenAsync(ct);
 
-        // Per-state aggregates
+        // Current state aggregates from block_groups
         var cmd = new MySqlCommand("""
             SELECT state_fips, AVG(walkability_score) AS avg_s, COUNT(*) AS bg_count
             FROM block_groups
@@ -359,7 +359,6 @@ public class WalkabilityService : IWalkabilityService
             }
         }
 
-        // If we somehow have no data at all, still return a zeroed-out entry for each state
         if (states.Count == 0)
         {
             return AllStateFips
@@ -367,22 +366,61 @@ public class WalkabilityService : IWalkabilityService
                 .ToArray();
         }
 
-        // Weighted national mean
+        // Load 2010 state averages for trend-based forecast (table may not exist or be empty)
+        var avg2010ByState = new Dictionary<string, double>();
+        try
+        {
+            var cmd2010 = new MySqlCommand("""
+                SELECT state_fips, AVG(walkability_score) AS avg_s
+                FROM block_groups_2010
+                GROUP BY state_fips
+                """, conn);
+            await using (var r = await cmd2010.ExecuteReaderAsync(ct))
+            {
+                while (await r.ReadAsync(ct))
+                {
+                    var sf = r.IsDBNull(0) ? "" : (r.GetString(0) ?? "").Trim();
+                    var a = r.IsDBNull(1) ? 0.0 : r.GetDouble(1);
+                    if (!string.IsNullOrEmpty(sf))
+                        avg2010ByState[sf] = a;
+                }
+            }
+        }
+        catch
+        {
+            // block_groups_2010 may not exist or be empty
+        }
+
+        const int baseYear = 2010;
+        var currentYear = DateTime.UtcNow.Year;
+        var yearsBaseToCurrent = Math.Max(1, currentYear - baseYear);
+
         var totalBg = states.Sum(s => (long)s.Count);
         var nationalMean = totalBg > 0
             ? states.Sum(s => s.Avg * s.Count) / totalBg
             : states.Average(s => s.Avg);
-
-        // Heuristic: over N years, each state's avg drifts partway toward the national mean.
-        // This is a speculative model, not a real forecast.
-        var factor = Math.Clamp(years / 20.0, 0.0, 1.0); // ~20-year half-life toward mean
+        var factor = Math.Clamp(years / 20.0, 0.0, 1.0);
 
         var result = new List<StateForecastDto>();
         foreach (var s in states)
         {
             var current = s.Avg;
-            var drift = (nationalMean - current) * 0.5 * factor; // move half-way over 20 years
-            var predicted = current + drift;
+            double predicted;
+
+            if (avg2010ByState.TryGetValue(s.StateFips, out var avg2010))
+            {
+                // Trend-based: full linear extrapolation from 2010 -> current -> future
+                var slope = (current - avg2010) / yearsBaseToCurrent;
+                predicted = current + slope * years;
+                predicted = Math.Clamp(predicted, 0.0, 20.0);
+            }
+            else
+            {
+                // Heuristic when no 2010 data for this state
+                var drift = (nationalMean - current) * 0.5 * factor;
+                predicted = current + drift;
+            }
+
             result.Add(new StateForecastDto(s.StateFips, current, predicted, s.Count));
         }
 

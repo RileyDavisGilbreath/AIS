@@ -29,6 +29,18 @@ CREATE TABLE block_groups (
 );
 
 
+-- 2010 vintage (NCI WalkIndex_USBlkGrps.csv) for trend-based forecast
+CREATE TABLE block_groups_2010 (
+    fips CHAR(12) NOT NULL PRIMARY KEY,
+    state_fips CHAR(2) NOT NULL,
+    county_fips CHAR(3) NOT NULL,
+    tract_fips CHAR(11) NOT NULL,
+    walkability_score DECIMAL(10,4) NOT NULL,
+    population INT NOT NULL DEFAULT 0,
+    housing_units INT NOT NULL DEFAULT 0,
+    INDEX idx_state (state_fips)
+);
+
 -- ETL will populate from EPA SLD CSV:
 -- GEOID -> fips, extract state/county/tract from GEOID
 -- NatWalkInd -> walkability_score

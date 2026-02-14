@@ -44,7 +44,6 @@ C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\AlabamaWalkabil
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\AlabamaWalkabilityApi.genruntimeconfig.cache
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\ref\AlabamaWalkabilityApi.dll
 C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\AlabamaWalkabilityApi.staticwebassets.runtime.json
-C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\appsettings.Development.json
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\AlabamaWalkabilityApi.sourcelink.json
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\slv3956a8r-ub6f1itcoe.gz
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\y8t8an3d8k-9bsjnb25lw.gz
