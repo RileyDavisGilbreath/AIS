@@ -1,5 +1,6 @@
 # Secrets and config with credentials
 .env
+appsettings.json
 appsettings.Development.json
 appsettings.Local.json
 **/secrets.json

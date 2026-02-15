@@ -47,8 +47,9 @@ C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\AlabamaWalkabil
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\AlabamaWalkabilityApi.sourcelink.json
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\slv3956a8r-ub6f1itcoe.gz
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\y8t8an3d8k-9bsjnb25lw.gz
-C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\ihqwpnuq47-7dn60rfbsj.gz
 C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\2zs5itf99g-8wc4ucmag6.gz
 C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\AIS\appsettings.Development.json
 C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\AIS\bin\Debug\net9.0\appsettings.Development.json
 C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\AIS\obj\Debug\net9.0\AlabamaWalkabilityApi.sourcelink.json
+C:\Users\riley\New folder\AlabamaWalkabilityApi\bin\Debug\net9.0\appsettings.example.json
+C:\Users\riley\New folder\AlabamaWalkabilityApi\obj\Debug\net9.0\compressed\ihqwpnuq47-qwrfib4eqy.gz
