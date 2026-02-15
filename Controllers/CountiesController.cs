@@ -12,15 +12,16 @@ public class CountiesController : ControllerBase
 
     public CountiesController(IWalkabilityService svc) => _svc = svc;
 
-    /// <summary>List all Alabama counties with summary stats.</summary>
+    /// <summary>List counties with summary stats. Optional stateFips to filter by state.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(PagedResult<CountyDto>), 200)]
     public async Task<ActionResult<PagedResult<CountyDto>>> GetCounties(
+        [FromQuery] string? stateFips,
         [FromQuery] string? sort,
-        [FromQuery] int limit = 67,
+        [FromQuery] int limit = 100,
         CancellationToken ct = default)
     {
-        var result = await _svc.GetCountiesAsync(sort, limit, ct);
+        var result = await _svc.GetCountiesAsync(stateFips, sort, limit, ct);
         return Ok(result);
     }
 }

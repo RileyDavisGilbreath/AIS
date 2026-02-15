@@ -28,17 +28,18 @@ public class StatsController : ControllerBase
         }
     }
 
-    /// <summary>Per-county stats for charts. Use withDataOnly=true to exclude counties with no block-group/population data.</summary>
+    /// <summary>Per-county stats for charts. Optional stateFips to filter. Use withDataOnly=true to exclude counties with no block-group/population data.</summary>
     [HttpGet("counties")]
     [ProducesResponseType(typeof(IEnumerable<CountyDto>), 200)]
     public async Task<ActionResult<IEnumerable<CountyDto>>> GetCountyStats(
+        [FromQuery] string? stateFips,
         [FromQuery] string? sort,
         [FromQuery] bool withDataOnly = false,
         CancellationToken ct = default)
     {
         try
         {
-            var result = await _svc.GetCountyStatsAsync(sort, withDataOnly, ct);
+            var result = await _svc.GetCountyStatsAsync(stateFips, sort, withDataOnly, ct);
             return Ok(result ?? Array.Empty<CountyDto>());
         }
         catch (Exception)
@@ -47,16 +48,17 @@ public class StatsController : ControllerBase
         }
     }
 
-    /// <summary>Walkability score distribution histogram.</summary>
+    /// <summary>Walkability score distribution histogram. Optional stateFips and countyFips to filter.</summary>
     [HttpGet("distribution")]
     [ProducesResponseType(typeof(IEnumerable<ScoreBucket>), 200)]
     public async Task<ActionResult<IEnumerable<ScoreBucket>>> GetDistribution(
+        [FromQuery] string? stateFips,
         [FromQuery] string? countyFips,
         CancellationToken ct = default)
     {
         try
         {
-            var result = await _svc.GetDistributionAsync(countyFips, ct);
+            var result = await _svc.GetDistributionAsync(stateFips, countyFips, ct);
             return Ok(result ?? Array.Empty<ScoreBucket>());
         }
         catch (Exception)
@@ -109,7 +111,7 @@ public class StatsController : ControllerBase
         try
         {
             var stateStats = await _svc.GetStateStatsAsync(ct);
-            var counties = await _svc.GetCountyStatsAsync(null, false, ct);
+            var counties = await _svc.GetCountyStatsAsync(null, null, false, ct);
             return Ok(new
             {
                 connected = true,

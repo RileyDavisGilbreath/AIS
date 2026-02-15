@@ -16,21 +16,6 @@ public class ImportController : ControllerBase
         _import = import;
     }
 
-    /// <summary>Seed the 67 Alabama counties with names (zero stats). Call once if /api/stats/counties is empty.</summary>
-    [HttpGet("seed-counties")]
-    public async Task<ActionResult> SeedCounties(CancellationToken ct = default)
-    {
-        try
-        {
-            var count = await _import.SeedAlabamaCountiesAsync(ct);
-            return Ok(new { seeded = count, message = $"Seeded {count} Alabama counties. Call /api/stats/counties to see them." });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message });
-        }
-    }
-
     /// <summary>Fetch first line (headers) of a CSV URL. Use to see column names if population is 0 (e.g. missing "Pop2010"/"D1B").</summary>
     [HttpGet("csv-headers")]
     public async Task<ActionResult> GetCsvHeaders([FromQuery] string url, CancellationToken ct = default)

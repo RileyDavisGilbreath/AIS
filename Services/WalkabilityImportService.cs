@@ -5,78 +5,6 @@ namespace AlabamaWalkabilityApi.Services;
 
     public class WalkabilityImportService : IWalkabilityImportService
 {
-    // Static lookup of Alabama county FIPS -> county name
-    private static readonly Dictionary<string, string> AlabamaCountyNames = new()
-    {
-        ["001"] = "Autauga",
-        ["003"] = "Baldwin",
-        ["005"] = "Barbour",
-        ["007"] = "Bibb",
-        ["009"] = "Blount",
-        ["011"] = "Bullock",
-        ["013"] = "Butler",
-        ["015"] = "Calhoun",
-        ["017"] = "Chambers",
-        ["019"] = "Cherokee",
-        ["021"] = "Chilton",
-        ["023"] = "Choctaw",
-        ["025"] = "Clarke",
-        ["027"] = "Clay",
-        ["029"] = "Cleburne",
-        ["031"] = "Coffee",
-        ["033"] = "Colbert",
-        ["035"] = "Conecuh",
-        ["037"] = "Coosa",
-        ["039"] = "Covington",
-        ["041"] = "Crenshaw",
-        ["043"] = "Cullman",
-        ["045"] = "Dale",
-        ["047"] = "Dallas",
-        ["049"] = "DeKalb",
-        ["051"] = "Elmore",
-        ["053"] = "Escambia",
-        ["055"] = "Etowah",
-        ["057"] = "Fayette",
-        ["059"] = "Franklin",
-        ["061"] = "Geneva",
-        ["063"] = "Greene",
-        ["065"] = "Hale",
-        ["067"] = "Henry",
-        ["069"] = "Houston",
-        ["071"] = "Jackson",
-        ["073"] = "Jefferson",
-        ["075"] = "Lamar",
-        ["077"] = "Lauderdale",
-        ["079"] = "Lawrence",
-        ["081"] = "Lee",
-        ["083"] = "Limestone",
-        ["085"] = "Lowndes",
-        ["087"] = "Macon",
-        ["089"] = "Madison",
-        ["091"] = "Marengo",
-        ["093"] = "Marion",
-        ["095"] = "Marshall",
-        ["097"] = "Mobile",
-        ["099"] = "Monroe",
-        ["101"] = "Montgomery",
-        ["103"] = "Morgan",
-        ["105"] = "Perry",
-        ["107"] = "Pickens",
-        ["109"] = "Pike",
-        ["111"] = "Randolph",
-        ["113"] = "Russell",
-        ["115"] = "St. Clair",
-        ["117"] = "Shelby",
-        ["119"] = "Sumter",
-        ["121"] = "Talladega",
-        ["123"] = "Tallapoosa",
-        ["125"] = "Tuscaloosa",
-        ["127"] = "Walker",
-        ["129"] = "Washington",
-        ["131"] = "Wilcox",
-        ["133"] = "Winston"
-    };
-
     private readonly IDataGovService _dataGov;
     private readonly WalkabilityDbContext _db;
 
@@ -170,15 +98,12 @@ namespace AlabamaWalkabilityApi.Services;
                 population = VALUES(population)
             """, conn);
 
-        var countyNames = await GetCountyNames(conn, ct);
         var countyCount = 0;
         foreach (var (keyStateCounty, (totalWalk, count, pop, _)) in countyStats)
         {
             var (stateFips, countyFips) = keyStateCounty;
             var avgWalk = count > 0 ? totalWalk / count : 0;
-            var name = stateFips == "01"
-                ? countyNames.GetValueOrDefault(countyFips, $"County {countyFips}")
-                : $"County {stateFips}{countyFips}";
+            var name = $"County {stateFips}{countyFips}";
 
             countyUpdateCmd.Parameters.Clear();
             countyUpdateCmd.Parameters.AddWithValue("@state", stateFips);
@@ -192,28 +117,6 @@ namespace AlabamaWalkabilityApi.Services;
         }
 
         return (blockGroupCount, countyCount);
-    }
-
-    public async Task<int> SeedAlabamaCountiesAsync(CancellationToken ct = default)
-    {
-        await using var conn = _db.CreateConnection();
-        await conn.OpenAsync(ct);
-        var cmd = new MySqlCommand("""
-            INSERT INTO counties (state_fips, fips, name, avg_walkability, block_group_count, population)
-            VALUES ('01', @fips, @name, 0, 0, 0)
-            ON DUPLICATE KEY UPDATE name = VALUES(name)
-            """, conn);
-        var count = 0;
-        foreach (var (fips, name) in AlabamaCountyNames)
-        {
-            if (name == "Other") continue;
-            cmd.Parameters.Clear();
-            cmd.Parameters.AddWithValue("@fips", fips);
-            cmd.Parameters.AddWithValue("@name", name);
-            await cmd.ExecuteNonQueryAsync(ct);
-            count++;
-        }
-        return count;
     }
 
     public async Task<(int blockGroups, int counties)> ImportFromCsvAsync(string csv, CancellationToken ct = default)
@@ -294,16 +197,12 @@ namespace AlabamaWalkabilityApi.Services;
                 population = VALUES(population)
             """, conn);
 
-        var countyNames = await GetCountyNames(conn, ct);
         var countyCount = 0;
         foreach (var (keyStateCounty, (totalWalk, count, pop, _)) in countyStats)
         {
             var (stateFips, countyFips) = keyStateCounty;
             var avgWalk = count > 0 ? totalWalk / count : 0;
-            // We only have canonical names for Alabama; elsewhere fall back to generic
-            var name = stateFips == "01"
-                ? countyNames.GetValueOrDefault(countyFips, $"County {countyFips}")
-                : $"County {stateFips}{countyFips}";
+            var name = $"County {stateFips}{countyFips}";
 
             countyUpdateCmd.Parameters.Clear();
             countyUpdateCmd.Parameters.AddWithValue("@state", stateFips);
@@ -362,28 +261,4 @@ namespace AlabamaWalkabilityApi.Services;
         return result.ToArray();
     }
 
-    private static string NormalizeCountyFips(string fips)
-    {
-        if (string.IsNullOrWhiteSpace(fips)) return "000";
-        fips = fips.Trim();
-        return fips.Length >= 3 ? fips : fips.PadLeft(3, '0');
-    }
-
-    private static async Task<Dictionary<string, string>> GetCountyNames(MySqlConnection conn, CancellationToken ct)
-    {
-        // Start with hard-coded Alabama county names (always 3-digit keys: 001, 003, ...)
-        var dict = new Dictionary<string, string>(AlabamaCountyNames);
-
-        // Overlay from DB using normalized 3-digit key; only overwrite if DB has a non-empty name
-        var cmd = new MySqlCommand("SELECT fips, name FROM counties WHERE state_fips = '01'", conn);
-        await using var r = await cmd.ExecuteReaderAsync(ct);
-        while (await r.ReadAsync(ct))
-        {
-            var key = NormalizeCountyFips(r.IsDBNull(0) ? "" : (r.GetString(0) ?? ""));
-            var name = r.IsDBNull(1) ? null : r.GetString(1);
-            if (!string.IsNullOrWhiteSpace(name))
-                dict[key] = name.Trim();
-        }
-        return dict;
-    }
 }

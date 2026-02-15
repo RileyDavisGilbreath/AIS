@@ -75,80 +75,6 @@ public class WalkabilityService : IWalkabilityService
         "56"  // WY
     ];
 
-    // Canonical Alabama county names, keyed by 3-digit county FIPS
-    private static readonly Dictionary<string, string> AlabamaCountyNames = new()
-    {
-        ["001"] = "Autauga",
-        ["003"] = "Baldwin",
-        ["005"] = "Barbour",
-        ["007"] = "Bibb",
-        ["009"] = "Blount",
-        ["011"] = "Bullock",
-        ["013"] = "Butler",
-        ["015"] = "Calhoun",
-        ["017"] = "Chambers",
-        ["019"] = "Cherokee",
-        ["021"] = "Chilton",
-        ["023"] = "Choctaw",
-        ["025"] = "Clarke",
-        ["027"] = "Clay",
-        ["029"] = "Cleburne",
-        ["031"] = "Coffee",
-        ["033"] = "Colbert",
-        ["035"] = "Conecuh",
-        ["037"] = "Coosa",
-        ["039"] = "Covington",
-        ["041"] = "Crenshaw",
-        ["043"] = "Cullman",
-        ["045"] = "Dale",
-        ["047"] = "Dallas",
-        ["049"] = "DeKalb",
-        ["051"] = "Elmore",
-        ["053"] = "Escambia",
-        ["055"] = "Etowah",
-        ["057"] = "Fayette",
-        ["059"] = "Franklin",
-        ["061"] = "Geneva",
-        ["063"] = "Greene",
-        ["065"] = "Hale",
-        ["067"] = "Henry",
-        ["069"] = "Houston",
-        ["071"] = "Jackson",
-        ["073"] = "Jefferson",
-        ["075"] = "Lamar",
-        ["077"] = "Lauderdale",
-        ["079"] = "Lawrence",
-        ["081"] = "Lee",
-        ["083"] = "Limestone",
-        ["085"] = "Lowndes",
-        ["087"] = "Macon",
-        ["089"] = "Madison",
-        ["091"] = "Marengo",
-        ["093"] = "Marion",
-        ["095"] = "Marshall",
-        ["097"] = "Mobile",
-        ["099"] = "Monroe",
-        ["101"] = "Montgomery",
-        ["103"] = "Morgan",
-        ["105"] = "Perry",
-        ["107"] = "Pickens",
-        ["109"] = "Pike",
-        ["111"] = "Randolph",
-        ["113"] = "Russell",
-        ["115"] = "St. Clair",
-        ["117"] = "Shelby",
-        ["119"] = "Sumter",
-        ["121"] = "Talladega",
-        ["123"] = "Tallapoosa",
-        ["125"] = "Tuscaloosa",
-        ["127"] = "Walker",
-        ["129"] = "Washington",
-        ["131"] = "Wilcox",
-        ["133"] = "Winston"
-    };
-
-    private const string AlabamaStateFips = "01";
-
     private readonly WalkabilityDbContext _db;
 
     public WalkabilityService(WalkabilityDbContext db) => _db = db;
@@ -160,37 +86,36 @@ public class WalkabilityService : IWalkabilityService
         return fips.Length >= 3 ? fips : fips.PadLeft(3, '0');
     }
 
-    private static string ResolveCountyName(string fips, string dbName)
+    private static string ResolveCountyName(string fips, string? dbName)
     {
-        var key = NormalizeCountyFips(fips);
-
-        // If DB already has a non-generic name, use it
         if (!string.IsNullOrWhiteSpace(dbName) && !dbName.StartsWith("County ", StringComparison.OrdinalIgnoreCase))
             return dbName.Trim();
-
-        // Otherwise fall back to canonical Alabama name when possible
-        return AlabamaCountyNames.TryGetValue(key, out var canonical) ? canonical : dbName.Trim();
+        return string.IsNullOrWhiteSpace(dbName) ? "County " + NormalizeCountyFips(fips) : dbName.Trim();
     }
 
-    public async Task<PagedResult<CountyDto>> GetCountiesAsync(string? sort, int limit, CancellationToken ct = default)
+    public async Task<PagedResult<CountyDto>> GetCountiesAsync(string? stateFips, string? sort, int limit, CancellationToken ct = default)
     {
         var orderBy = sort?.ToLowerInvariant() == "walkabilityscore" ? "avg_walkability DESC" : "name ASC";
         await using var conn = _db.CreateConnection();
         await conn.OpenAsync(ct);
 
-        var countCmd = new MySqlCommand(
-            "SELECT COUNT(*) FROM counties WHERE state_fips = @state", conn);
-        countCmd.Parameters.AddWithValue("@state", AlabamaStateFips);
+        var countSql = string.IsNullOrEmpty(stateFips)
+            ? "SELECT COUNT(*) FROM counties"
+            : "SELECT COUNT(*) FROM counties WHERE state_fips = @state";
+        var countCmd = new MySqlCommand(countSql, conn);
+        if (!string.IsNullOrEmpty(stateFips))
+            countCmd.Parameters.AddWithValue("@state", stateFips.Trim().Length == 1 ? "0" + stateFips.Trim() : stateFips.Trim());
         var total = Convert.ToInt32(await countCmd.ExecuteScalarAsync(ct));
 
+        var whereClause = string.IsNullOrEmpty(stateFips) ? "" : " WHERE state_fips = @state";
         var cmd = new MySqlCommand($"""
             SELECT fips, name, avg_walkability, block_group_count, population
-            FROM counties
-            WHERE state_fips = @state
+            FROM counties{whereClause}
             ORDER BY {orderBy}
             LIMIT @limit
             """, conn);
-        cmd.Parameters.AddWithValue("@state", AlabamaStateFips);
+        if (!string.IsNullOrEmpty(stateFips))
+            cmd.Parameters.AddWithValue("@state", stateFips.Trim().Length == 1 ? "0" + stateFips.Trim() : stateFips.Trim());
         cmd.Parameters.AddWithValue("@limit", limit);
 
         var items = new List<CountyDto>();
@@ -271,17 +196,21 @@ public class WalkabilityService : IWalkabilityService
         return new StateStatsDto(avg, median, cnt, (int)pop, buckets);
     }
 
-    public async Task<IEnumerable<CountyDto>> GetCountyStatsAsync(string? sort, bool withDataOnly = false, CancellationToken ct = default)
+    public async Task<IEnumerable<CountyDto>> GetCountyStatsAsync(string? stateFips, string? sort, bool withDataOnly = false, CancellationToken ct = default)
     {
         var orderBy = sort?.ToLowerInvariant() == "walkabilityscore" ? "avg_walkability DESC" : "name ASC";
-        var whereData = withDataOnly ? " AND (block_group_count > 0 OR population > 0)" : "";
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(stateFips)) parts.Add("state_fips = @state");
+        if (withDataOnly) parts.Add("(block_group_count > 0 OR population > 0)");
+        var whereClause = parts.Count == 0 ? "" : " WHERE " + string.Join(" AND ", parts);
         await using var conn = _db.CreateConnection();
         await conn.OpenAsync(ct);
         var cmd = new MySqlCommand($"""
             SELECT fips, name, avg_walkability, block_group_count, population
-            FROM counties WHERE state_fips = @state{whereData} ORDER BY {orderBy}
+            FROM counties{whereClause} ORDER BY {orderBy}
             """, conn);
-        cmd.Parameters.AddWithValue("@state", AlabamaStateFips);
+        if (!string.IsNullOrEmpty(stateFips))
+            cmd.Parameters.AddWithValue("@state", stateFips.Trim().Length == 1 ? "0" + stateFips.Trim() : stateFips.Trim());
         var list = new List<CountyDto>();
         await using var r = await cmd.ExecuteReaderAsync(ct);
         while (await r.ReadAsync(ct))
@@ -297,27 +226,23 @@ public class WalkabilityService : IWalkabilityService
         return list;
     }
 
-    public async Task<IEnumerable<ScoreBucket>> GetDistributionAsync(string? countyFips, CancellationToken ct = default)
+    public async Task<IEnumerable<ScoreBucket>> GetDistributionAsync(string? stateFips, string? countyFips, CancellationToken ct = default)
     {
         await using var conn = _db.CreateConnection();
         await conn.OpenAsync(ct);
-        // Use only grouped expression in SELECT to satisfy ONLY_FULL_GROUP_BY; build bucket label in code
         var sql = """
             SELECT FLOOR(walkability_score/5) AS bucket_key, COUNT(*) c
             FROM block_groups
             """;
-        if (!string.IsNullOrEmpty(countyFips))
-        {
-            sql += " WHERE state_fips = @state AND county_fips = @county";
-        }
+        if (!string.IsNullOrEmpty(stateFips)) sql += " WHERE state_fips = @state";
+        if (!string.IsNullOrEmpty(countyFips)) sql += (string.IsNullOrEmpty(stateFips) ? " WHERE " : " AND ") + "county_fips = @county";
         sql += " GROUP BY FLOOR(walkability_score/5) ORDER BY bucket_key";
 
         var cmd = new MySqlCommand(sql, conn);
+        if (!string.IsNullOrEmpty(stateFips))
+            cmd.Parameters.AddWithValue("@state", stateFips.Trim().Length == 1 ? "0" + stateFips.Trim() : stateFips.Trim());
         if (!string.IsNullOrEmpty(countyFips))
-        {
-            cmd.Parameters.AddWithValue("@state", AlabamaStateFips);
-            cmd.Parameters.AddWithValue("@county", countyFips);
-        }
+            cmd.Parameters.AddWithValue("@county", countyFips.Trim().Length < 3 ? countyFips.Trim().PadLeft(3, '0') : countyFips.Trim());
 
         var buckets = new List<ScoreBucket>();
         await using var r = await cmd.ExecuteReaderAsync(ct);
