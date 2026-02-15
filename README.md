@@ -25,6 +25,8 @@ All data comes from public EPA and NCI URLs.
 - **Current (EPA):** [EPA Smart Location Database CSV](https://edg.epa.gov/EPADataCommons/public/OA/EPA_SmartLocationDatabase_V3_Jan_2021_Final.csv)  
   Set `Import:CsvUrl` in appsettings to this URL.
 - **2010 (NCI) for trend forecast:** Get the CSV from [NCI GIS research files](https://gis.cancer.gov/research/files.html) (e.g. Walk Index US block groups), then `POST /api/import/csv/file-2010` (form: `file`).
+- when creating database in MySQL dont limit number of rows
+  
 
 ## API
 
