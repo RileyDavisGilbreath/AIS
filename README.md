@@ -15,7 +15,7 @@ The repo does **not** include the database or data. To run with data:
 
 1. **Create the database:** Run `Scripts/schema.sql` against your MySQL instance (creates `alabama_walkability` and tables).
 2. **Configure:** Set `ConnectionStrings:Default` in `appsettings.json` (your server, user, password). Do not commit real credentials.
-3. **Import current data:** Set `Import:CsvUrl` in appsettings to the EPA CSV URL below, or call `GET /api/import/csv?url=...` with that URL. The scheduled job or a one-off run will populate `block_groups` and `counties`. ask cursor for more details if stuck
+3. **Import current data:** Set `Import:CsvUrl` in appsettings to the EPA CSV URL below, or call `GET /api/import/csv?url=...` with that URL. The scheduled job or a one-off run will populate `block_groups` and `counties`. ask cursor for more details if stuck, files may need to be downloaded before they can be imported
 4. **2010 data for trend forecast:** Run `Scripts/migration_add_block_groups_2010.sql`, then `POST /api/import/csv/file-2010` with the NCI CSV file (form field `file`).
 
 All data comes from public EPA and NCI URLs.
